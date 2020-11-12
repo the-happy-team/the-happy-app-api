@@ -8,7 +8,7 @@ notifications:
 
 branches:
   only:
-    - master
+    - main
 
 script:
   - echo "deploying"
