@@ -1,5 +1,7 @@
 const express = require('express');
+const { createTransport } = require('nodemailer');
 const { Message, Feelings } = require('./models');
+const logger = require('./utils/logger');
 
 function saveAndRespond(obj, res) {
   obj.save().then((saved) => {
@@ -29,12 +31,33 @@ function routeMessages(app) {
   app.use('/message', router);
 
   router.get('/', apiOk('message'));
-
-  router.post('/', (req, res) => {
-    saveAndRespond(new Message(req.body), res);
-  });
+  router.post('/', sendEmail);
 
   return app;
+}
+
+function sendEmail(req, res) {
+  const smtpTransport = createTransport({
+    host: 'mail.smtp2go.com',
+    port: process.env.E_PRT,
+    auth: {
+      user: process.env.E_USR,
+      pass: process.env.E_PSW
+    }
+  });
+
+  const mailOptions = {
+    from: `${process.env.E_USR}@smtp2go.com`,
+    to: process.env.E_REC,
+    replyTo: `${req.body.email}`,
+    subject: '[THE-HAPPY-APP] contact',
+    text: `${req.body.message}`
+  };
+
+  smtpTransport.sendMail(mailOptions, (error, response) => {
+    if(error) logger.error(error);
+    saveAndRespond(new Message(req.body), res);
+  });
 }
 
 function routeFeelings(app) {
