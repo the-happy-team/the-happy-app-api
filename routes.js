@@ -3,11 +3,16 @@ const { createTransport } = require('nodemailer');
 const { Message, Feelings } = require('./models');
 const logger = require('./utils/logger');
 
+const POST_FUNCTION = {
+  message: sendEmail,
+  feelings: saveFeelings
+}
+
 function saveAndRespond(obj, res) {
   obj.save().then((saved) => {
     res.status(200).send({
       success: true,
-      data: saved
+      data: `${saved}`
     });
   }).catch((err) => {
     res.status(500).send({
@@ -26,14 +31,16 @@ function apiOk(api) {
   };
 }
 
-function routeMessages(app) {
+function route(app, endpoint) {
   const router = express.Router();
-  app.use('/message', router);
 
-  router.get('/', apiOk('message'));
-  router.post('/', sendEmail);
+  app.use(`/${endpoint}`, router);
+  router.get('/', apiOk(endpoint));
+  router.post('/', POST_FUNCTION[endpoint]);
+}
 
-  return app;
+function saveFeelings(req, res) {
+  saveAndRespond(new Feelings(req.body), res);
 }
 
 function sendEmail(req, res) {
@@ -60,21 +67,8 @@ function sendEmail(req, res) {
   });
 }
 
-function routeFeelings(app) {
-  const router = express.Router();
-  app.use('/feelings', router);
-
-  router.get('/', apiOk('feelings'));
-
-  router.post('/', (req, res) => {
-    saveAndRespond(new Feelings(req.body), res);
-  });
-
-  return app;
-}
-
 function setupRoutes(app) {
-  routeFeelings(routeMessages(app));
+  Object.keys(POST_FUNCTION).forEach(e => route(app, e));
 }
 
 module.exports = { setupRoutes };
