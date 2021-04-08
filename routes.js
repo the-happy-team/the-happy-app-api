@@ -54,7 +54,7 @@ function sendEmail(req, res) {
   });
 
   const mailOptions = {
-    from: `${process.env.E_USR}@smtp2go.com`,
+    from: process.env.E_SND,
     to: process.env.E_REC,
     replyTo: `${req.body.email}`,
     subject: '[THE-HAPPY-APP] contact',
