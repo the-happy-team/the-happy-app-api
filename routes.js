@@ -6,7 +6,7 @@ const logger = require('./utils/logger');
 const POST_FUNCTION = {
   message: sendEmail,
   feelings: saveFeelings
-}
+};
 
 function saveAndRespond(obj, res) {
   obj.save().then((saved) => {
@@ -61,7 +61,7 @@ function sendEmail(req, res) {
     text: `${req.body.message}`
   };
 
-  smtpTransport.sendMail(mailOptions, (error, response) => {
+  smtpTransport.sendMail(mailOptions, (error) => {
     if(error) logger.error(error);
     saveAndRespond(new Message(req.body), res);
   });
